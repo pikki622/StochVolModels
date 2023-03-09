@@ -24,12 +24,12 @@ def compute_normal_price(forward: float,
     """
     sdev = forward*vol*np.sqrt(ttm)
     d = (forward - strike) / sdev
-    if optiontype == 'C' or optiontype == 'IC':
+    if optiontype in {'C', 'IC'}:
         price = discfactor * ((forward-strike) * ncdf(d) + sdev * npdf(d))
-    elif optiontype == 'P' or optiontype == 'IP':
+    elif optiontype in {'P', 'IP'}:
         price = discfactor * ((forward - strike) * (ncdf(d)-1.0) + sdev * npdf(d))
     else:
-        raise NotImplementedError(f"optiontype")
+        raise NotImplementedError("optiontype")
 
     return price
 
@@ -68,8 +68,7 @@ def compute_normal_delta_to_strike(ttm: float,
     """
     inv_delta = norm.ppf(delta) if delta > 0.0 else norm.ppf(1.0+delta)
     sdev = forward * vol * np.sqrt(ttm)
-    strike = forward - sdev*inv_delta
-    return strike
+    return forward - sdev*inv_delta
 
 
 @njit(cache=False, fastmath=True)
@@ -109,12 +108,11 @@ def compute_normal_delta(ttm: float,
     sdev = forward * vol * np.sqrt(ttm)
     d = (forward - strike) / sdev
     if optiontype == 'C':
-        normal_delta = discfactor * ncdf(d)
+        return discfactor * ncdf(d)
     elif optiontype == 'P':
-        normal_delta = - discfactor * ncdf(-d)
+        return - discfactor * ncdf(-d)
     else:
-        normal_delta = np.nan
-    return normal_delta
+        return np.nan
 
 
 @njit(cache=False, fastmath=True)
@@ -131,8 +129,7 @@ def compute_normal_slice_deltas(ttm: Union[float, np.ndarray],
     sdev = forward * vols * np.sqrt(ttm)
     d = (forward - strikes) / sdev
     d1_sign = np.where(np.array([op == 'C' for op in optiontypes]), 1.0, -1.0)
-    normal_deltas = discfactor * d1_sign * ncdf(d1_sign * d)
-    return normal_deltas
+    return discfactor * d1_sign * ncdf(d1_sign * d)
 
 
 @njit(cache=False, fastmath=True)
@@ -163,8 +160,7 @@ def compute_normal_slice_vegas(ttm: float,
     """
     sdev = forward*vols * np.sqrt(ttm)
     d = (forward - strikes) / sdev
-    vegas = forward * npdf(d) * np.sqrt(ttm)
-    return vegas
+    return forward * npdf(d) * np.sqrt(ttm)
 
 
 @njit(cache=False, fastmath=True)
@@ -208,7 +204,7 @@ def infer_normal_implied_vol(forward: float,
             rtb = x2
             dx = x1-x2
         xmid = rtb
-        for j in range(0, 100):
+        for _ in range(100):
             dx = dx*0.5
             xmid = rtb+dx
             fmid = compute_normal_price(forward=forward, strike=strike, ttm=ttm, vol=xmid, discfactor=discfactor, optiontype=optiontype) - given_price
@@ -219,14 +215,9 @@ def infer_normal_implied_vol(forward: float,
         v1 = xmid
 
     else:
-        if f < 0:
-            v1 = x1
-        else:
-            v1 = x2
-
-    if is_bounds_to_nan:  # in case vol was inferred it will return nan
-        if np.abs(v1-x1) < tol or np.abs(v1-x2) < tol:
-            v1 = np.nan
+        v1 = x1 if f < 0 else x2
+    if is_bounds_to_nan and (np.abs(v1 - x1) < tol or np.abs(v1 - x2) < tol):
+        v1 = np.nan
     return v1
 
 

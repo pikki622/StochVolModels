@@ -23,10 +23,7 @@ def compute_normal_mgf_grid(ttm: float,
     add two columns to make compatible with @ for numba in slice_pricer_with_a_grid
     """
     phi_grid = mgfp.get_phi_grid(is_spot_measure=is_spot_measure)
-    if is_spot_measure:  # use 1 for spot measure
-        alpha = 1.0
-    else:
-        alpha = -1.0
+    alpha = 1.0 if is_spot_measure else -1.0
     log_mgf_grid = 0.5 * phi_grid * (phi_grid + alpha) * (ttm * vol * vol)
     return log_mgf_grid, phi_grid
 
@@ -75,7 +72,7 @@ def bsm_slice_pricer(ttm: float,
                                                         forward=forward)
         bsm_ivols = np.zeros_like(bsm_prices)
     else:
-        raise ValueError(f"not implemented")
+        raise ValueError("not implemented")
 
     return bsm_prices, bsm_ivols
 

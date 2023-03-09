@@ -19,12 +19,8 @@ def get_phi_grid(is_spot_measure: bool = True,
     default vol scaler corresponds to pricing option with vol=100% and 1m ttm = 1/12
     """
     p = np.linspace(0, 5.6/vol_scaler, 1000)  # default max phi is 20 with 1000 points
-    if is_spot_measure:
-        real_p = -0.5
-    else:
-        real_p = 0.5
-    phi_grid = real_p + 1j * p
-    return phi_grid
+    real_p = -0.5 if is_spot_measure else 0.5
+    return real_p + 1j * p
 
 
 @njit(cache=False, fastmath=True)
@@ -34,8 +30,7 @@ def get_psi_grid() -> np.ndarray:
     """
     p = np.linspace(0, 200, 4000)
     real_p = -0.5
-    psi_grid = real_p + 1j * p
-    return psi_grid
+    return real_p + 1j * p
 
 
 @njit(cache=False, fastmath=True)
@@ -45,8 +40,7 @@ def get_theta_grid() -> np.ndarray:
     """
     p = np.linspace(0, 600, 4000)
     real_p = -0.5
-    theta_grid = real_p + 1j * p
-    return theta_grid
+    return real_p + 1j * p
 
 
 @njit(cache=False, fastmath=True)
@@ -118,13 +112,12 @@ def slice_pricer_with_mgf_grid(log_mgf_grid: np.ndarray,
     p = np.imag(phi_grid)
     dp = compute_integration_weights(var_grid=phi_grid, is_simpson=is_simpson)
 
-    if np.all(np.abs(np.real(phi_grid))-0.5 < 1e-10):  # optimized for phi = +/-0.5 + i*p
+    if np.all(np.abs(np.real(phi_grid)) < 0.5000000001):  # optimized for phi = +/-0.5 + i*p
         p_payoff = (dp / np.pi) / (p * p + 0.25) + 1j * 0.0  # add zero complex part for numba
+    elif is_spot_measure:
+        p_payoff = - (dp / np.pi) / ((phi_grid+1.0)*phi_grid)
     else:
-        if is_spot_measure:
-            p_payoff = - (dp / np.pi) / ((phi_grid+1.0)*phi_grid)
-        else:
-            p_payoff = - (dp / np.pi) / ((phi_grid-1.0) * phi_grid)
+        p_payoff = - (dp / np.pi) / ((phi_grid-1.0) * phi_grid)
 
     log_strikes = np.log(forward/strikes)
     option_prices = np.zeros_like(log_strikes)
@@ -137,14 +130,13 @@ def slice_pricer_with_mgf_grid(log_mgf_grid: np.ndarray,
             elif type_ == 'P':
                 option_prices[idx] = discfactor*(strike - strike * capped_option_price)
             else:
-                raise ValueError(f"not implemented")
-        else:  # for inverse measure we multiply by forward
-            if type_ in ['IC', 'C']:
-                option_prices[idx] = forward*discfactor*(1.0 - capped_option_price)
-            elif type_ in ['IP', 'P']:
-                option_prices[idx] = forward*discfactor*(np.exp(-x) - capped_option_price)
-            else:
-                raise ValueError(f"not implemented")
+                raise ValueError("not implemented")
+        elif type_ in ['IC', 'C']:
+            option_prices[idx] = forward*discfactor*(1.0 - capped_option_price)
+        elif type_ in ['IP', 'P']:
+            option_prices[idx] = forward*discfactor*(np.exp(-x) - capped_option_price)
+        else:
+            raise ValueError("not implemented")
 
     return option_prices
 
@@ -173,17 +165,10 @@ def slice_qvar_pricer_with_a_grid(log_mgf_grid: np.ndarray,
         option_price = np.nansum(np.real(p_payoff * np.exp((strike * ttm) * psi_grid + log_mgf_grid)))
         option_price = np.maximum(discfactor * option_price / ttm, 1e-10)
 
-        if is_spot_measure:
-            if type_ == 'C':
-                option_prices[idx] = option_price
-            else:
-                raise ValueError(f"not implemented")
+        if type_ == 'C':
+            option_prices[idx] = option_price
         else:
-            if type_ == 'C':
-                option_prices[idx] = option_price
-            else:
-                raise ValueError(f"not implemented")
-
+            raise ValueError("not implemented")
     return option_prices
 
 

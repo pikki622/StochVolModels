@@ -69,8 +69,8 @@ def update_kwargs(kwargs: Dict[Any, Any],
     update kwargs with optional kwargs dicts
     """
     local_kwargs = kwargs.copy()
-    if new_kwargs is not None and not len(new_kwargs) == 0:
-        local_kwargs.update(new_kwargs)
+    if new_kwargs is not None and len(new_kwargs) != 0:
+        local_kwargs |= new_kwargs
     return local_kwargs
 
 
@@ -83,8 +83,7 @@ def erfcc(x: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
     t = 1. / (1. + 0.5*z)
     r = t * np.exp(-z*z-1.26551223+t*(1.00002368+t*(0.37409196+t*(0.09678418+t*(-0.18628806+t*(0.27886807+
         t*(-1.13520398+t*(1.48851587+t*(-.82215223+t*0.17087277)))))))))
-    fcc = np.where(np.greater(x, 0.0), r, 2.0-r)
-    return fcc
+    return np.where(np.greater(x, 0.0), r, 2.0-r)
 
 
 @njit(cache=False, fastmath=True)

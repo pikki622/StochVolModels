@@ -103,24 +103,23 @@ class OptionChain:
             return None
 
     def get_chain_deltas(self) -> List[np.ndarray]:
-        deltas_ttms = bsm.compute_bsm_deltas_ttms(ttms=self.ttms,
-                                                  forwards=self.forwards,
-                                                  strikes_ttms=self.strikes_ttms,
-                                                  optiontypes_ttms=self.optiontypes_ttms,
-                                                  vols_ttms=self.get_mid_vols())
-        return deltas_ttms
+        return bsm.compute_bsm_deltas_ttms(
+            ttms=self.ttms,
+            forwards=self.forwards,
+            strikes_ttms=self.strikes_ttms,
+            optiontypes_ttms=self.optiontypes_ttms,
+            vols_ttms=self.get_mid_vols(),
+        )
 
     def get_chain_vegas(self, is_unit_ttm_vega: bool = False) -> List[np.ndarray]:
-        if is_unit_ttm_vega:
-            ttms = np.ones_like(self.ttms)
-        else:
-            ttms = self.ttms
-        vegas_ttms = bsm.compute_bsm_vegas_ttms(ttms=ttms,
-                                                forwards=self.forwards,
-                                                strikes_ttms=self.strikes_ttms,
-                                                optiontypes_ttms=self.optiontypes_ttms,
-                                                vols_ttms=self.get_mid_vols())
-        return vegas_ttms
+        ttms = np.ones_like(self.ttms) if is_unit_ttm_vega else self.ttms
+        return bsm.compute_bsm_vegas_ttms(
+            ttms=ttms,
+            forwards=self.forwards,
+            strikes_ttms=self.strikes_ttms,
+            optiontypes_ttms=self.optiontypes_ttms,
+            vols_ttms=self.get_mid_vols(),
+        )
 
     def get_chain_atm_vols(self) -> np.ndarray:
         atm_vols = np.zeros(len(self.ttms))
@@ -138,13 +137,14 @@ class OptionChain:
         return x, y
 
     def compute_model_ivols_from_chain_data(self, model_prices: List[np.ndarray]) -> List[np.ndarray]:
-        model_ivols = bsm.infer_bsm_ivols_from_model_chain_prices(ttms=self.ttms,
-                                                                  forwards=self.forwards,
-                                                                  discfactors=self.discfactors,
-                                                                  strikes_ttms=self.strikes_ttms,
-                                                                  optiontypes_ttms=self.optiontypes_ttms,
-                                                                  model_prices_ttms=model_prices)
-        return model_ivols
+        return bsm.infer_bsm_ivols_from_model_chain_prices(
+            ttms=self.ttms,
+            forwards=self.forwards,
+            discfactors=self.discfactors,
+            strikes_ttms=self.strikes_ttms,
+            optiontypes_ttms=self.optiontypes_ttms,
+            model_prices_ttms=model_prices,
+        )
 
     @classmethod
     def to_uniform_strikes(cls, obj, num_strikes=21):
@@ -167,17 +167,18 @@ class OptionChain:
 
     def get_slice(self, id: str) -> OptionSlice:
         idx = list(self.ids).index(id)
-        option_slice = OptionSlice(id=self.ids[idx],
-                                   ttm=self.ttms[idx],
-                                   forward=self.forwards[idx],
-                                   strikes=self.strikes_ttms[idx],
-                                   optiontypes=self.optiontypes_ttms[idx],
-                                   discfactor=self.discfactors[idx],
-                                   bid_ivs=None if self.bid_ivs is None else self.bid_ivs[idx],
-                                   ask_ivs=None if self.ask_ivs is None else self.ask_ivs[idx],
-                                   bid_prices=None if self.bid_prices is None else self.bid_prices[idx],
-                                   ask_prices=None if self.ask_prices is None else self.ask_prices[idx])
-        return option_slice
+        return OptionSlice(
+            id=self.ids[idx],
+            ttm=self.ttms[idx],
+            forward=self.forwards[idx],
+            strikes=self.strikes_ttms[idx],
+            optiontypes=self.optiontypes_ttms[idx],
+            discfactor=self.discfactors[idx],
+            bid_ivs=None if self.bid_ivs is None else self.bid_ivs[idx],
+            ask_ivs=None if self.ask_ivs is None else self.ask_ivs[idx],
+            bid_prices=None if self.bid_prices is None else self.bid_prices[idx],
+            ask_prices=None if self.ask_prices is None else self.ask_prices[idx],
+        )
 
     @classmethod
     def get_slices_as_chain(cls, option_chain: OptionChain, ids: List[str]) -> OptionChain:

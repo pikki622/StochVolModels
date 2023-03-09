@@ -48,8 +48,11 @@ def vol_moment(params: LogSvParams, r: int = 1):
     nu = 2.0 * (params.kappa2 * params.theta - params.kappa1) / params.vartheta2 - 1.0
     q = 2.0 * params.kappa1 * params.theta / params.vartheta2
     b = 2.0 * params.kappa2 / params.vartheta2
-    y = np.power(b/q, r/2.0) * sps.kv(nu+r, 2.0*np.sqrt(q*b)) / sps.kv(nu, 2.0*np.sqrt(q*b))
-    return y
+    return (
+        np.power(b / q, r / 2.0)
+        * sps.kv(nu + r, 2.0 * np.sqrt(q * b))
+        / sps.kv(nu, 2.0 * np.sqrt(q * b))
+    )
 
 
 def vol_skeweness(params: LogSvParams):
@@ -57,11 +60,7 @@ def vol_skeweness(params: LogSvParams):
     m2_r = vol_moment(params=params, r=2)
     m1_r = vol_moment(params=params, r=1)
     m2 = m2_r - m1_r * m1_r
-    # y = (m3_r-3*m1_r*m2_r-m1_r*m1_r*m1_r)/np.power(m2_r, 1.5)
-    y = (m3_r-3*m1_r*m2-m1_r*m1_r*m1_r)/np.power(m2, 1.5)
-    # y = (m3_r - 3.0 * m1_r * m2_r - 2.0*m1_r * m1_r * m1_r) / np.power(m2, 1.5)
-    # print(f"m1_r={m1_r}, m2_r={m2_r}, m2={m2}, m3_r={m3_r}, skew={y}")
-    return y
+    return (m3_r-3*m1_r*m2-m1_r*m1_r*m1_r)/np.power(m2, 1.5)
 
 
 def steady_state(sigma: np.ndarray,
@@ -70,15 +69,13 @@ def steady_state(sigma: np.ndarray,
     nu = 2.0*(params.kappa2*params.theta-params.kappa1)/params.vartheta2 - 1.0
     q = 2.0*params.kappa1*params.theta/params.vartheta2
     b = 2.0*params.kappa2/params.vartheta2
-    if params.kappa1 >= 1e-6:
-        if params.kappa2 >= 1e-6:
-            c = np.power(b/q, nu/2.0) / (2.0*sps.kv(nu, 2.0*np.sqrt(q*b)))
-        else:
-            c = np.power(q, -nu) / sps.gamma(-nu)
+    if params.kappa1 < 1e-6:
+        raise NotImplementedError("kappa1 = 0 is not implemented")
+    if params.kappa2 >= 1e-6:
+        c = np.power(b/q, nu/2.0) / (2.0*sps.kv(nu, 2.0*np.sqrt(q*b)))
     else:
-        raise NotImplementedError(f"kappa1 = 0 is not implemented")
-    g = c*np.power(sigma, nu-1.0)*np.exp(-q*np.reciprocal(sigma)-b*sigma)
-    return g
+        c = np.power(q, -nu) / sps.gamma(-nu)
+    return c*np.power(sigma, nu-1.0)*np.exp(-q*np.reciprocal(sigma)-b*sigma)
 
 
 def plot_steady_state(params_dict: Dict[str, LogSvParams] = SS_PDF_PARAMS,
@@ -87,9 +84,12 @@ def plot_steady_state(params_dict: Dict[str, LogSvParams] = SS_PDF_PARAMS,
                       ) -> None:
 
     sigma = np.linspace(1e-4, 4.0, 1000)
-    qs = []
-    for key, params in params_dict.items():
-        qs.append(pd.Series(steady_state(sigma=sigma, params=params), index=sigma, name=key))
+    qs = [
+        pd.Series(
+            steady_state(sigma=sigma, params=params), index=sigma, name=key
+        )
+        for key, params in params_dict.items()
+    ]
     ss_pdf = pd.concat(qs, axis=1)
 
     sns.lineplot(data=ss_pdf, dashes=False, ax=ax)
@@ -125,10 +125,7 @@ def plot_steady_state_x(params_dict: Dict[str, LogSvParams] = SS_PDF_PARAMS,
     ax.set_title(title, color='darkblue')
 
 
-def plot_vol_skew(params_dict=SS_PARAMS,
-                  title: str = f'Skeweness of volatility as function of $\kappa_{2}$',
-                  ax: plt.Subplot = None
-                  ) -> None:
+def plot_vol_skew(params_dict=SS_PARAMS, title: str = f'Skeweness of volatility as function of $\kappa_2$', ax: plt.Subplot = None) -> None:
 
     kappa2s = np.linspace(0.5, 10.0, 100)
     qs = []
@@ -151,15 +148,12 @@ def plot_vol_skew(params_dict=SS_PARAMS,
     ss_pdf = pd.concat(qs, axis=1)
 
     sns.lineplot(data=ss_pdf, dashes=False, ax=ax)
-    ax.set_xlabel(f'$\kappa_{2}$')
+    ax.set_xlabel(f'$\kappa_2$')
     if title is not None:
         ax.set_title(title, fontsize=12, color='darkblue')
 
 
-def plot_ss_kurtosis(params_dict=SS_PARAMS,
-                     title: str = f'Excess kurtosis of log-returns as function of $\kappa_{2}$',
-                     ax: plt.Subplot = None
-                     ) -> None:
+def plot_ss_kurtosis(params_dict=SS_PARAMS, title: str = f'Excess kurtosis of log-returns as function of $\kappa_2$', ax: plt.Subplot = None) -> None:
 
     kappa2s = np.linspace(0.5, 10.0, 100)
     qs = []
@@ -180,7 +174,7 @@ def plot_ss_kurtosis(params_dict=SS_PARAMS,
     ss_pdf = pd.concat(qs, axis=1)
 
     sns.lineplot(data=ss_pdf, dashes=False, ax=ax)
-    ax.set_xlabel(f'$\kappa_{2}$')
+    ax.set_xlabel(f'$\kappa_2$')
     if title is not None:
         ax.set_title(title, fontsize=12, color='darkblue')
 
@@ -227,10 +221,14 @@ def run_unit_test(unit_test: UnitTests):
             fig, axs = plt.subplots(1, 3, figsize=(18, 6), tight_layout=True)
             plot_steady_state(title='(A) Steady state distribution of the volatility',
                               ax=axs[0])
-            plot_vol_skew(title=f'(B) Skeweness of volatility as function of $\kappa_{2}$',
-                          ax=axs[1])
-            plot_ss_kurtosis(title=f'(C) Excess kurtosis of log-returns as function of $\kappa_{2}$',
-                             ax=axs[2])
+            plot_vol_skew(
+                title=f'(B) Skeweness of volatility as function of $\kappa_2$',
+                ax=axs[1],
+            )
+            plot_ss_kurtosis(
+                title=f'(C) Excess kurtosis of log-returns as function of $\kappa_2$',
+                ax=axs[2],
+            )
 
             is_save = True
             if is_save:

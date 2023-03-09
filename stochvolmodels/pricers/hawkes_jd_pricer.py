@@ -107,26 +107,30 @@ class HawkesJDPricer(ModelPricer):
         """
         implementation of generic method price_chain using log sv wrapper
         """
-        if risk_premia_gammas is not None:
-            model_prices = hawkesjd_chain_pricer_with_risk_premia(model_params=params,
-                                                                  risk_premia_gammas=risk_premia_gammas,
-                                                                  ttms=option_chain.ttms,
-                                                                  forwards=option_chain.forwards,
-                                                                  discfactors=option_chain.discfactors,
-                                                                  strikes_ttms=option_chain.strikes_ttms,
-                                                                  optiontypes_ttms=option_chain.optiontypes_ttms,
-                                                                  is_spot_measure=is_spot_measure,
-                                                                  **kwargs)
-        else:
-            model_prices = hawkesjd_chain_pricer(model_params=params,
-                                                 ttms=option_chain.ttms,
-                                                 forwards=option_chain.forwards,
-                                                 discfactors=option_chain.discfactors,
-                                                 strikes_ttms=option_chain.strikes_ttms,
-                                                 optiontypes_ttms=option_chain.optiontypes_ttms,
-                                                 is_spot_measure=is_spot_measure,
-                                                 **kwargs)
-        return model_prices
+        return (
+            hawkesjd_chain_pricer_with_risk_premia(
+                model_params=params,
+                risk_premia_gammas=risk_premia_gammas,
+                ttms=option_chain.ttms,
+                forwards=option_chain.forwards,
+                discfactors=option_chain.discfactors,
+                strikes_ttms=option_chain.strikes_ttms,
+                optiontypes_ttms=option_chain.optiontypes_ttms,
+                is_spot_measure=is_spot_measure,
+                **kwargs
+            )
+            if risk_premia_gammas is not None
+            else hawkesjd_chain_pricer(
+                model_params=params,
+                ttms=option_chain.ttms,
+                forwards=option_chain.forwards,
+                discfactors=option_chain.discfactors,
+                strikes_ttms=option_chain.strikes_ttms,
+                optiontypes_ttms=option_chain.optiontypes_ttms,
+                is_spot_measure=is_spot_measure,
+                **kwargs
+            )
+        )
 
 
     @timer
@@ -574,7 +578,7 @@ def simulate_hawkesjd_terminal(ttm: float,
     compensator_m_dt = dt*(np.exp(shift_m) / (1.0 - mean_m) - 1.0)
 
     drift_dt = (mu-0.5*sigma*sigma) * dt
-    for t_, (w0, u_p, u_m, j_p, j_m) in enumerate(zip(W0, U_P, U_M, J_P, J_M)):
+    for w0, u_p, u_m, j_p, j_m in zip(W0, U_P, U_M, J_P, J_M):
         diffusion = drift_dt - compensator_p_dt*lambda_p0 - compensator_m_dt*lambda_m0 + sigma * w0
         # generate jumps:
         jump_p = np.where(lambda_p0 > u_p, j_p, 0.0)

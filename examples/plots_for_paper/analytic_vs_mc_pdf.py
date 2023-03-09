@@ -76,8 +76,6 @@ class UnitTests(Enum):
 
 def run_unit_test(unit_test: UnitTests):
 
-    is_save = False
-
     if unit_test == UnitTests.PLOT_JOINT_PDF:
         set_seed(37)
 
@@ -85,6 +83,8 @@ def run_unit_test(unit_test: UnitTests):
             fig, axs = plt.subplots(1, 3, figsize=(18, 6), tight_layout=True)
         plot_var_pdfs(params=BTC_PARAMS, ttm=1.0, axs=axs)
         plot.set_subplot_border(fig=fig, n_ax_rows=1, n_ax_col=3)
+
+        is_save = False
 
         if is_save:
             plot.save_fig(fig=fig, local_path='../../docs/figures//', file_name="pdfs_btc")

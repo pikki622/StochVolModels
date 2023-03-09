@@ -185,15 +185,16 @@ class LogSVPricer(ModelPricer):
         """
         implementation of generic method price_chain using log sv wrapper
         """
-        model_prices = logsv_chain_pricer(params=params,
-                                          ttms=option_chain.ttms,
-                                          forwards=option_chain.forwards,
-                                          discfactors=option_chain.discfactors,
-                                          strikes_ttms=option_chain.strikes_ttms,
-                                          optiontypes_ttms=option_chain.optiontypes_ttms,
-                                          is_spot_measure=is_spot_measure,
-                                          **kwargs)
-        return model_prices
+        return logsv_chain_pricer(
+            params=params,
+            ttms=option_chain.ttms,
+            forwards=option_chain.forwards,
+            discfactors=option_chain.discfactors,
+            strikes_ttms=option_chain.strikes_ttms,
+            optiontypes_ttms=option_chain.optiontypes_ttms,
+            is_spot_measure=is_spot_measure,
+            **kwargs
+        )
 
     @timer
     def model_mc_price_chain(self,
@@ -408,8 +409,8 @@ def v0_implied(atm: float, beta: float, volvol: float, theta: float, kappa1: flo
     """
     approximation for short term model atm vol
     """
-    beta2 = beta * beta
-    volvol2 = volvol*volvol
+    beta2 = beta**2
+    volvol2 = volvol**2
     vartheta2 = beta2 + volvol2
 
     def simple():
@@ -556,11 +557,12 @@ def logsv_pdfs(params: LogSvParams,
     else:
         raise NotImplementedError
 
-    pdf = mgfp.pdf_with_mgf_grid(log_mgf_grid=log_mgf_grid,
-                                 transform_var_grid=transform_var_grid,
-                                 space_grid=space_grid,
-                                 shift=shift)
-    return pdf
+    return mgfp.pdf_with_mgf_grid(
+        log_mgf_grid=log_mgf_grid,
+        transform_var_grid=transform_var_grid,
+        space_grid=space_grid,
+        shift=shift,
+    )
 
 
 @njit(cache=False, fastmath=True)
@@ -635,12 +637,8 @@ def simulate_vol_paths(ttm: float,
 
     nb_steps, dt, grid_t = set_time_grid(ttm=ttm, year_days=year_days)
     w1 = np.sqrt(dt) * np.random.normal(0, 1, size=(nb_steps, nb_path))
-    if is_spot_measure:
-        alpha, adj = -1.0, 0.0
-    else:
-        alpha, adj = 1.0, beta
-
-    vartheta2 = beta*beta + volvol*volvol
+    alpha, adj = (-1.0, 0.0) if is_spot_measure else (1.0, beta)
+    vartheta2 = beta**2 + volvol**2
     vartheta = np.sqrt(vartheta2)
     vol_var = np.log(sigma0)
     sigma_t = np.zeros((nb_steps+1, nb_path))  # sigma grid will increase to include the sigma_0 at t0 = 0
@@ -686,14 +684,10 @@ def simulate_logsv_x_vol_terminal(ttm: float,
     W0 = np.sqrt(dt) * np.random.normal(0, 1, size=(nb_steps, nb_path))
     W1 = np.sqrt(dt) * np.random.normal(0, 1, size=(nb_steps, nb_path))
 
-    if is_spot_measure:
-        alpha, adj = -1.0, 0.0
-    else:
-        alpha, adj = 1.0, beta
-
-    vartheta2 = beta*beta + volvol*volvol
+    alpha, adj = (-1.0, 0.0) if is_spot_measure else (1.0, beta)
+    vartheta2 = beta**2 + volvol**2
     vol_var = np.log(sigma0)
-    for t_, (w0, w1) in enumerate(zip(W0, W1)):
+    for w0, w1 in zip(W0, W1):
         sigma0_2dt = sigma0 * sigma0 * dt
         x0 = x0 + alpha * 0.5 * sigma0_2dt + sigma0 * w0
         qvar0 = qvar0 + sigma0_2dt

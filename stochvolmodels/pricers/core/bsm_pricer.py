@@ -33,12 +33,12 @@ def compute_bsm_price(forward: float,
     sT = vol * np.sqrt(ttm)
     d1 = (np.log(forward / strike) + 0.5 * sT * sT) / sT
     d2 = d1 - sT
-    if optiontype == 'C' or optiontype == 'IC':
+    if optiontype in {'C', 'IC'}:
         price = discfactor * (forward * ncdf(d1) - strike * ncdf(d2))
-    elif optiontype == 'P' or optiontype == 'IP':
+    elif optiontype in {'P', 'IP'}:
         price = -discfactor * (forward * ncdf(-d1) - strike * ncdf(-d2))
     else:
-        raise NotImplementedError(f"optiontype")
+        raise NotImplementedError("optiontype")
 
     return price
 
@@ -78,8 +78,7 @@ def compute_bsm_delta_to_strike(ttm: float,
     """
     inv_delta = norm.ppf(delta) if delta > 0.0 else -norm.ppf(-delta)
     sT = vol * np.sqrt(ttm)
-    strike = forward*np.exp(-sT*(inv_delta - 0.5 * sT))
-    return strike
+    return forward*np.exp(-sT*(inv_delta - 0.5 * sT))
 
 
 @njit(cache=False, fastmath=True)
@@ -100,8 +99,7 @@ def compute_bsm_delta(ttm: float,
         d1_sign = - 1.0
     else:
         d1_sign = 0.0
-    bsm_deltas = d1_sign * ncdf(d1_sign * d1)
-    return bsm_deltas
+    return d1_sign * ncdf(d1_sign * d1)
 
 
 @njit(cache=False, fastmath=True)
@@ -122,8 +120,7 @@ def compute_bsm_slice_deltas(ttm: Union[float, np.ndarray],
         d1_sign = - 1.0
     else:
         d1_sign = np.where(np.array([op == 'C' for op in optiontypes]), 1.0, -1.0)
-    bsm_deltas = d1_sign * ncdf(d1_sign * d1)
-    return bsm_deltas
+    return d1_sign * ncdf(d1_sign * d1)
 
 
 #@njit(cache=False, fastmath=True)
@@ -154,8 +151,7 @@ def compute_bsm_slice_vegas(ttm: float,
     """
     sT = vols * np.sqrt(ttm)
     d1 = np.log(forward / strikes) / sT + 0.5 * sT
-    vegas = forward * npdf(d1) * np.sqrt(ttm)
-    return vegas
+    return forward * npdf(d1) * np.sqrt(ttm)
 
 
 @njit(cache=False, fastmath=True)
@@ -216,7 +212,7 @@ def infer_bsm_implied_vol(forward: float,
             rtb = x2
             dx = x1-x2
         xmid = rtb
-        for j in range(0, 40):
+        for _ in range(40):
             dx = dx*0.5
             xmid = rtb+dx
             fmid = compute_bsm_price(forward=forward, strike=strike, ttm=ttm, vol=xmid, discfactor=discfactor, optiontype=optiontype) - given_price
@@ -227,14 +223,9 @@ def infer_bsm_implied_vol(forward: float,
         v1 = xmid
 
     else:
-        if f < 0:
-            v1 = x1
-        else:
-            v1 = x2
-
-    if is_bounds_to_nan:  # in case vol was inferred it will return nan
-        if np.abs(v1-x1) < tol or np.abs(v1-x2) < tol:
-            v1 = np.nan
+        v1 = x1 if f < 0 else x2
+    if is_bounds_to_nan and (np.abs(v1 - x1) < tol or np.abs(v1 - x2) < tol):
+        v1 = np.nan
     return v1
 
 

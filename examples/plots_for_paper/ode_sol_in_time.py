@@ -54,7 +54,7 @@ def plot_ode_sol_in_t(params: LogSvParams,
                                         axis=1)}
 
     else:
-        raise TypeError(f"not implemented")
+        raise TypeError("not implemented")
 
     if axs is None:
         with sns.axes_style("darkgrid"):
@@ -62,10 +62,7 @@ def plot_ode_sol_in_t(params: LogSvParams,
             fig.suptitle(title, color='darkblue')
     for idx, (key, data) in enumerate(data.items()):
         sns.lineplot(data=data, ax=axs[idx])
-        if headers is not None: # and idx == 0:
-            title_ = f"{headers[idx]} {key}, {title}"
-        else:
-            title_ = key
+        title_ = f"{headers[idx]} {key}, {title}" if headers is not None else key
         axs[idx].set_title(title_, color='darkblue')
         axs[idx].set(xlabel=r"$\tau$")
 
@@ -79,11 +76,7 @@ def plot_ode_solutions(params: LogSvParams,
     """
     solve and plot real and imag parts of solutions in ttm as function of phi
     """
-    if is_spot_measure:
-        real_part = -0.5
-    else:
-        real_part = 0.5
-
+    real_part = -0.5 if is_spot_measure else 0.5
     is_1d = True
     if is_1d:
         phis = np.array([real_part + 2.0j], dtype=np.complex128)
@@ -139,8 +132,7 @@ def solve_approximate_solutions(ttm: float,
                                          psi=psi,
                                          expansion_order=expansion_order)
     L = np.transpose(L)
-    term = (sla.expm(ttm*L) - la.pinv(L))*H
-    return term
+    return (sla.expm(ttm*L) - la.pinv(L))*H
 
 
 def plot_approximate_solutions(params: LogSvParams,
@@ -184,7 +176,7 @@ def plot_approximate_solutions(params: LogSvParams,
     elif expansion_order == ExpansionOrder.SECOND:
         columns = ['A0', 'A1', 'A2', 'A3', 'A4']
     else:
-        raise TypeError(f"not implemented")
+        raise TypeError("not implemented")
 
     apr_real = pd.DataFrame(data=np.real(apr_sol), index=ttms, columns=columns)
     apr_imag = pd.DataFrame(data=np.imag(apr_sol), index=ttms, columns=columns)

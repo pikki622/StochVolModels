@@ -31,7 +31,7 @@ def compute_analytic_vol_moments(params: LogSvParams,
 
     y = params.sigma0 - params.theta
     y0 = np.zeros(n_terms)
-    for n in range(0, n_terms):
+    for n in range(n_terms):
         y0[n] = np.power(y, n+1)
 
     if np.isclose(np.abs(t), 0.0):
@@ -40,11 +40,7 @@ def compute_analytic_vol_moments(params: LogSvParams,
     rhs = np.zeros(n_terms)
     rhs[1] = params.vartheta2*params.theta2
 
-    if is_qvar: # need flat boundary condition
-        rhs[-1] = -n_terms*params.kappa2*np.power(y, n_terms+1)
-    else:
-        rhs[-1] = -n_terms*params.kappa2*np.power(y, n_terms+1)
-
+    rhs[-1] = -n_terms*params.kappa2*np.power(y, n_terms+1)
     i_m = la.inv(lambda_m)
     is_expm = True
     if is_expm:
@@ -65,8 +61,7 @@ def compute_analytic_vol_moments(params: LogSvParams,
         sol1 = e_m @ y0
         sol2 = m_rhs @ rhs
 
-    sol = sol1 + sol2
-    return sol
+    return sol1 + sol2
 
 
 def compute_analytic_qvar(params: LogSvParams,
@@ -74,11 +69,9 @@ def compute_analytic_qvar(params: LogSvParams,
                           n_terms: int = 4
                           ) -> float:
     if np.isclose(ttm, 0.0):
-        qvar = np.square(params.sigma0)
-    else:
-        int_moments = compute_analytic_vol_moments(params=params, t=ttm, n_terms=n_terms, is_qvar=True)
-        qvar = (int_moments[1] + 2.0*params.theta*int_moments[0]) / ttm + params.theta2
-    return qvar
+        return np.square(params.sigma0)
+    int_moments = compute_analytic_vol_moments(params=params, t=ttm, n_terms=n_terms, is_qvar=True)
+    return (int_moments[1] + 2.0*params.theta*int_moments[0]) / ttm + params.theta2
 
 
 def compute_vol_moments_t(params: LogSvParams,

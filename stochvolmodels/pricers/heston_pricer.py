@@ -38,17 +38,18 @@ class HestonPricer(ModelPricer):
         """
         implementation of generic method price_chain using heston wrapper for heston chain
         """
-        model_prices_ttms = heston_chain_pricer(v0=params.v0,
-                                                theta=params.theta,
-                                                kappa=params.kappa,
-                                                volvol=params.volvol,
-                                                rho=params.rho,
-                                                ttms=option_chain.ttms,
-                                                forwards=option_chain.forwards,
-                                                discfactors=option_chain.discfactors,
-                                                strikes_ttms=option_chain.strikes_ttms,
-                                                optiontypes_ttms=option_chain.optiontypes_ttms)
-        return model_prices_ttms
+        return heston_chain_pricer(
+            v0=params.v0,
+            theta=params.theta,
+            kappa=params.kappa,
+            volvol=params.volvol,
+            rho=params.rho,
+            ttms=option_chain.ttms,
+            forwards=option_chain.forwards,
+            discfactors=option_chain.discfactors,
+            strikes_ttms=option_chain.strikes_ttms,
+            optiontypes_ttms=option_chain.optiontypes_ttms,
+        )
 
     def model_mc_price_chain(self, option_chain: OptionChain, params: HestonParams,
                              nb_path: int = 100000,
@@ -142,7 +143,7 @@ def compute_heston_mgf_grid(v0: float,
     mgf solution for heston model
     formula (14) in Sepp (2007), Variance swaps under no conditions, Risk
     """
-    volvol2 = volvol*volvol
+    volvol2 = volvol**2
     b1 = kappa + rho*volvol*phi_grid
     b0 = 0.5*phi_grid*(phi_grid+1.0) - psi_grid
     zeta = np.sqrt(b1*b1-2.0*b0*volvol2)
@@ -283,7 +284,7 @@ def simulate_heston_x_vol_terminal(ttm: float,
     w0 = np.sqrt(dt) * np.random.normal(0, 1, size=(nb_steps, nb_path))
     w1 = np.sqrt(dt) * np.random.normal(0, 1, size=(nb_steps, nb_path))
 
-    rho_1 = np.sqrt(1.0-rho*rho)
+    rho_1 = np.sqrt(1.0 - rho**2)
     for w0_, w1_ in zip(w0, w1):
         sigma0 = np.sqrt(var0)
         sigma0_2dt = var0 * dt
@@ -299,7 +300,7 @@ def v0_implied(v0: float, volvol: float, ttm: float):
     """
     to do: find good approximation for heston
     """
-    v0 = v0 - volvol*volvol*ttm / 8.0
+    v0 -= volvol**2 * ttm / 8.0
     # print(f"{ttm}, {v0}")
     return v0
 

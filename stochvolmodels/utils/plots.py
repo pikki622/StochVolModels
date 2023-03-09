@@ -182,7 +182,7 @@ def vol_slice_fit(bid_vol: pd.Series,
 
     # atm points
     if atm_points is not None:
-        for key, (x, y) in atm_points.items():
+        for x, y in atm_points.values():
             ax.scatter(x, y, marker='*', color='navy', s=40, linewidth=5)
             lines.append(('ATM', {'color': 'navy', 'linestyle': '', 'marker': '*'}))
 
@@ -225,11 +225,7 @@ def plot_model_risk_var(risk_var: Union[pd.Series, pd.DataFrame],
     if isinstance(risk_var, pd.Series):  # optimise for frame
         risk_var = risk_var.to_frame()
 
-    if len(risk_var.columns) == 1:
-        palette = ['black']
-    else:
-        palette = None
-
+    palette = ['black'] if len(risk_var.columns) == 1 else None
     sns.lineplot(data=risk_var, palette=palette, dashes=False, ax=ax)
 
     if len(risk_var.columns) == 1:
@@ -368,12 +364,11 @@ def map_deltas_to_str(bsm_deltas: np.ndarray) -> List[str]:
     index_str = [f"{x:0.2f}" for x in bsm_deltas]
     for idx, x in enumerate(bsm_deltas):
         x_str = index_str[idx]
-        if idx > 0:
-            if x_str == index_str[idx - 1]:
-                if x < 0.0:  # decrease previous delta
-                    slice_index[idx - 1] = f"{bsm_deltas[idx - 1]:0.3f}"
-                else:
-                    x_str = f"{x:0.3f}"
+        if idx > 0 and x_str == index_str[idx - 1]:
+            if x < 0.0:  # decrease previous delta
+                slice_index[idx - 1] = f"{bsm_deltas[idx - 1]:0.3f}"
+            else:
+                x_str = f"{x:0.3f}"
         slice_index.append(x_str)
     return slice_index
 
@@ -386,23 +381,36 @@ def set_subplot_border(fig: plt.Figure,
     n_ax1 = n_ax_rows
     n_ax2 = n_ax_col
 
-    rects = []
     height = 1.0 / n_ax1
-    for r in range(n_ax1):
-        rects.append(plt.Rectangle((0.0, r*height), 1.0, height,  # (lower-left corner), width, height
-                                   fill=False,
-                                   color='#00284A',
-                                   lw=1,
-                                   zorder=1000,
-                                   transform=fig.transFigure, figure=fig))
+    rects = [
+        plt.Rectangle(
+            (0.0, r * height),
+            1.0,
+            height,  # (lower-left corner), width, height
+            fill=False,
+            color='#00284A',
+            lw=1,
+            zorder=1000,
+            transform=fig.transFigure,
+            figure=fig,
+        )
+        for r in range(n_ax1)
+    ]
     width = 1.0 / n_ax2
-    for r in range(n_ax2):
-        rects.append(plt.Rectangle((r*width, 0), width, 1.0,  # (lower-left corner), width, height
-                                   fill=False,
-                                   color='#00284A',
-                                   lw=1,
-                                   zorder=1000,
-                                   transform=fig.transFigure, figure=fig))
+    rects.extend(
+        plt.Rectangle(
+            (r * width, 0),
+            width,
+            1.0,  # (lower-left corner), width, height
+            fill=False,
+            color='#00284A',
+            lw=1,
+            zorder=1000,
+            transform=fig.transFigure,
+            figure=fig,
+        )
+        for r in range(n_ax2)
+    )
     fig.patches.extend(rects)
 
 

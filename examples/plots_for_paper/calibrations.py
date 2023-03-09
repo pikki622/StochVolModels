@@ -81,11 +81,11 @@ def calibrate_logsv_model(asset: Assets = Assets.BTC,
                                                               constraints_type=constraints_type)
     fit_params.print_vol_moments_stability()
     print(fit_params)
-    fig = logsv_pricer.plot_model_ivols_vs_bid_ask(option_chain=option_chain,
-                                                   params=fit_params,
-                                                   headers=('(A)', '(B)', '(C)', '(D)'))
-
-    return fig
+    return logsv_pricer.plot_model_ivols_vs_bid_ask(
+        option_chain=option_chain,
+        params=fit_params,
+        headers=('(A)', '(B)', '(C)', '(D)'),
+    )
 
 
 class UnitTests(Enum):

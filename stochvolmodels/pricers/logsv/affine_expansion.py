@@ -20,11 +20,7 @@ class ExpansionOrder(Enum):
 
 @njit(cache=False, fastmath=True)
 def get_expansion_n(expansion_order: ExpansionOrder = ExpansionOrder.FIRST) -> int:
-    if expansion_order == ExpansionOrder.FIRST:
-        n = 3
-    else:
-        n = 5
-    return n
+    return 3 if expansion_order == ExpansionOrder.FIRST else 5
 
 
 @njit(cache=False, fastmath=True)
@@ -41,8 +37,8 @@ def func_a_ode_quadratic_terms(theta: float,
     """
     Matrices for the quadratic form A_t = A.T@M@A + L@A + H
     """
-    theta2 = theta * theta
-    vartheta2 = beta * beta + volvol * volvol
+    theta2 = theta**2
+    vartheta2 = beta**2 + volvol**2
     qv = theta * vartheta2
     qv2 = theta2 * vartheta2
     if is_spot_measure:
@@ -118,8 +114,7 @@ def func_rhs(t: float,   # for ode solver compatibility
     quadratic = np.zeros(n, dtype=np.complex128)
     for n_ in np.arange(n):
         quadratic[n_] = A0.T @ M[n_] @ A0
-    rhs = quadratic + L @ A0 + H
-    return rhs
+    return quadratic + L @ A0 + H
 
 
 @njit(cache=False, fastmath=True)
@@ -136,8 +131,7 @@ def func_rhs_jac(t: float,   # for ode solver compatibility
     quadratic = np.zeros((n, n), dtype=np.complex128)
     for n_ in np.arange(n):
         quadratic[n_, :] = 2.0 * M[n_] @ A0
-    rhs = quadratic + A0
-    return rhs
+    return quadratic + A0
 
 
 # cannot use @njit(cache=False, fastmath=True) when using solve_ode_for_a with solve_ivp
@@ -172,16 +166,25 @@ def solve_ode_for_a(ttm: float,
     if a_t0 is None:
         a_t0 = np.zeros_like(H, dtype=np.complex128)
 
-    if is_stiff_solver:
-        ode_sol = solve_ivp(fun=func_rhs, t_span=(0.0, ttm), y0=a_t0, args=(M, L, H),
-                            method='BDF',
-                            jac=func_rhs_jac,
-                            dense_output=dense_output)
-    else:
-        ode_sol = solve_ivp(fun=func_rhs, t_span=(0.0, ttm), y0=a_t0, args=(M, L, H),
-                            dense_output=dense_output)
-
-    return ode_sol
+    return (
+        solve_ivp(
+            fun=func_rhs,
+            t_span=(0.0, ttm),
+            y0=a_t0,
+            args=(M, L, H),
+            method='BDF',
+            jac=func_rhs_jac,
+            dense_output=dense_output,
+        )
+        if is_stiff_solver
+        else solve_ivp(
+            fun=func_rhs,
+            t_span=(0.0, ttm),
+            y0=a_t0,
+            args=(M, L, H),
+            dense_output=dense_output,
+        )
+    )
 
 
 @njit(cache=False, fastmath=True)
@@ -229,7 +232,7 @@ def solve_analytic_ode_for_a(ttm: float,
     # fixed point
     nfp = 10
     n = H.shape[0]
-    for t in np.arange(0, nb_steps):
+    for _ in np.arange(0, nb_steps):
         A_fp0 = a_t0
         for _ in np.arange(nfp):
             # for idx, m in enumerate(M):
@@ -286,8 +289,7 @@ def solve_analytic_ode_for_a0(t_span: Tuple[float, float],
     n = H.shape[0]
     Lq = np.zeros((n,n), dtype=np.complex128)
 
-    for t in np.arange(0, nt):
-
+    for _ in np.arange(0, nt):
         A_fp0 = A0
         for _ in np.arange(nfp):
             for n_ in np.arange(n):

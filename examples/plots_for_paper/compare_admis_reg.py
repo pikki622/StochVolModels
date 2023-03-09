@@ -83,7 +83,7 @@ def heston_exp_ou_combined(vartheta_min=0.5,
     ax[0].set_ylim(rho_min, rho_max, auto=True)
     ax[0].legend()
     ax[0].set(xlabel=r"$\vartheta$", ylabel=r"$\rho$")
-    ax[0].set_title(f"(A) Heston model")
+    ax[0].set_title("(A) Heston model")
     # Right plot for bounds ensuring existence of second moment under spot and inverse spot
     kappa2 = 0
     rho_spot_meas = np.maximum(kappa2 / vartheta, rho_min)
@@ -99,7 +99,7 @@ def heston_exp_ou_combined(vartheta_min=0.5,
     ax[1].set_ylim(rho_min, rho_max, auto=True)
     ax[1].legend()
     ax[1].set(xlabel=r"$\vartheta$", ylabel=r"$\rho$")
-    ax[1].set_title(f"(B) Exp-OU model")
+    ax[1].set_title("(B) Exp-OU model")
 
     plot.save_fig(fig=fig, local_path='../../docs/figures//',
                   file_name='heston_exp_ou_combined')

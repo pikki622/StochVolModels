@@ -80,14 +80,14 @@ class ModelPricer(ABC):
         abstract method for pricing chain data using simulation of model dynamics
         recommended as a wrapper for numba implementation
         """
-        raise NotImplementedError(f"must be implemented in parent class")
+        raise NotImplementedError("must be implemented in parent class")
 
     def calibrate_model_params_to_chain(self, option_chain: OptionChain, **kwargs):
         """
         this is core method for model calibration
         we keep as not generic because model implementation may not require calibration of model parameters
         """
-        raise NotImplementedError(f"must be implemented in parent class")
+        raise NotImplementedError("must be implemented in parent class")
 
     #########################################################
     #          implemented interfaces for pricing
@@ -141,13 +141,13 @@ class ModelPricer(ABC):
         """
         get grid of vol paths
         """
-        raise NotImplementedError(f"must be implemented in parent class")
+        raise NotImplementedError("must be implemented in parent class")
 
     def simulate_terminal_values(self, params: ModelParams, **kwargs) -> (np.ndarray, np.ndarray, np.ndarray):
         """
         get realizationss of terminal paths of x, vol, qvar
         """
-        raise NotImplementedError(f"must be implemented in parent class")
+        raise NotImplementedError("must be implemented in parent class")
 
     #########################################################
     #          implemented interfaces for mc implied vol comptutions
@@ -207,7 +207,7 @@ class ModelPricer(ABC):
         """
         model pdf
         """
-        raise NotImplementedError(f"must be implemented in parent class")
+        raise NotImplementedError("must be implemented in parent class")
 
     #########################################################
     #          visualization interfaces
@@ -238,13 +238,12 @@ class ModelPricer(ABC):
             else:
                 strikes = option_chain.strikes_ttms[idx]
 
-            if option_chain.ids is not None:
-                if headers is not None:
-                    name = f"{headers[idx]} slice - {option_chain.ids[idx]}"
-                else:
-                    name = f"Slice - {option_chain.ids[idx]}"
-            else:
+            if option_chain.ids is None:
                 name = f"{ttm=:0.2f}"
+            elif headers is not None:
+                name = f"{headers[idx]} slice - {option_chain.ids[idx]}"
+            else:
+                name = f"Slice - {option_chain.ids[idx]}"
             model_vols_ts.append(pd.Series(model_ivols[idx], index=strikes, name=name))
 
         model_vols_ts = pd.concat(model_vols_ts, axis=1)
@@ -327,14 +326,13 @@ class ModelPricer(ABC):
             midvols = 0.5 * (option_chain.bid_ivs[idx] + option_chain.ask_ivs[idx])
             mse2 = np.sqrt(np.nanmean(np.power(model_ivols[idx] - midvols, 2)))
             model_vols = pd.Series(model_ivols[idx], index=strikes, name=f"Model Fit: mse={mse2:0.2%}")
-            if option_chain.ids is not None:
-                if headers is not None:
-                    title = f"{headers[idx]} slice - {option_chain.ids[idx]}"
-                else:
-                    title = f"Slice - {option_chain.ids[idx]}"
-            else:
+            if option_chain.ids is None:
                 title = f"{ttm=:0.2f}"
 
+            elif headers is not None:
+                title = f"{headers[idx]} slice - {option_chain.ids[idx]}"
+            else:
+                title = f"Slice - {option_chain.ids[idx]}"
             if is_log_strike_xaxis:
                 atm_points = {'ATM': (0.0, atm_vols[idx])}
             else:
@@ -400,10 +398,7 @@ class ModelPricer(ABC):
             else:
                 title = f"{ttm=:0.2f}"
 
-            if len(option_chain.ttms) > 1:
-                ax = axs[idx % 2][idx // 2]
-            else:
-                ax = axs
+            ax = axs[idx % 2][idx // 2] if len(option_chain.ttms) > 1 else axs
             plot.vol_slice_fit(bid_vol=pd.Series(mc_ivols_down[idx], index=strikes),
                                ask_vol=pd.Series(mc_ivols_up[idx], index=strikes),
                                model_vols=model_vol_t,
@@ -447,7 +442,7 @@ class ModelPricer(ABC):
         # we perform MC simulation in MMA measure
         mc_kwargs = update_kwargs(kwargs, dict(is_spot_measure=True, variable_type=variable_type))
         model_prices_ttms, model_prices_ttms_ups, model_prices_ttms_downs, \
-        mc_ivols, mc_ivols_up, mc_ivols_down, mc_stdev_ttms = self.compute_mc_chain_implied_vols(option_chain=option_chain,
+            mc_ivols, mc_ivols_up, mc_ivols_down, mc_stdev_ttms = self.compute_mc_chain_implied_vols(option_chain=option_chain,
                                                                                                  params=params,
                                                                                                  nb_path=nb_path,
                                                                                                  **mc_kwargs)
@@ -489,14 +484,13 @@ class ModelPricer(ABC):
                 model_vols[f"{key}: mse={mse:0.2%}"] = pd.Series(model_data[idx], index=strikes)
             model_vols = pd.DataFrame.from_dict(model_vols, orient='columns')
 
-            if option_chain.ids is not None:
-                if headers is not None:
-                    title = f"{headers[idx]} slice - {option_chain.ids[idx]}"
-                else:
-                    title = f"slice - {option_chain.ids[idx]}"
-            else:
+            if option_chain.ids is None:
                 title = f"{ttm=:0.2f}"
 
+            elif headers is not None:
+                title = f"{headers[idx]} slice - {option_chain.ids[idx]}"
+            else:
+                title = f"slice - {option_chain.ids[idx]}"
             atm_vol = np.interp(x=option_chain.forwards[idx], xp=option_chain.strikes_ttms[idx],
                                 fp=0.5 * (mc_data_lower[idx] + mc_data_upper[idx]))
             if is_log_strike_xaxis:

@@ -55,17 +55,17 @@ def get_btc_test_chain_data() -> OptionChain:
                                'C', 'C'], dtype='<U1'),
                         array(['P', 'P', 'P', 'C', 'C', 'C', 'C', 'C', 'C'], dtype='<U1'))
 
-    data = OptionChain(ids=ids,
-                       ttms=ttms,
-                       ticker=ticker,
-                       forwards=forwards,
-                       strikes_ttms=strikes_ttms,
-                       optiontypes_ttms=optiontypes_ttms,
-                       discfactors=discfactors,
-                       bid_ivs=bid_ivs,
-                       ask_ivs=ask_ivs)
-
-    return data
+    return OptionChain(
+        ids=ids,
+        ttms=ttms,
+        ticker=ticker,
+        forwards=forwards,
+        strikes_ttms=strikes_ttms,
+        optiontypes_ttms=optiontypes_ttms,
+        discfactors=discfactors,
+        bid_ivs=bid_ivs,
+        ask_ivs=ask_ivs,
+    )
 
 
 def get_vix_test_chain_data() -> OptionChain:
@@ -142,17 +142,17 @@ def get_vix_test_chain_data() -> OptionChain:
                                'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C',
                                'C', 'C', 'C', 'C', 'C'], dtype='<U1'))
 
-    data = OptionChain(ids=ids,
-                       ttms=ttms,
-                       ticker=ticker,
-                       forwards=forwards,
-                       strikes_ttms=strikes_ttms,
-                       optiontypes_ttms=optiontypes_ttms,
-                       discfactors=discfactors,
-                       bid_ivs=bid_ivs,
-                       ask_ivs=ask_ivs)
-
-    return data
+    return OptionChain(
+        ids=ids,
+        ttms=ttms,
+        ticker=ticker,
+        forwards=forwards,
+        strikes_ttms=strikes_ttms,
+        optiontypes_ttms=optiontypes_ttms,
+        discfactors=discfactors,
+        bid_ivs=bid_ivs,
+        ask_ivs=ask_ivs,
+    )
 
 
 def get_gld_test_chain_data_6m() -> OptionChain:
@@ -263,17 +263,17 @@ def get_gld_test_chain_data_6m() -> OptionChain:
                                'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C',
                                'C', 'C', 'C', 'C', 'C', 'C', 'C'], dtype='<U1'))
 
-    data = OptionChain(ids=ids,
-                       ttms=ttms,
-                       ticker=ticker,
-                       forwards=forwards,
-                       strikes_ttms=strikes_ttms,
-                       optiontypes_ttms=optiontypes_ttms,
-                       discfactors=discfactors,
-                       bid_ivs=bid_ivs,
-                       ask_ivs=ask_ivs)
-
-    return data
+    return OptionChain(
+        ids=ids,
+        ttms=ttms,
+        ticker=ticker,
+        forwards=forwards,
+        strikes_ttms=strikes_ttms,
+        optiontypes_ttms=optiontypes_ttms,
+        discfactors=discfactors,
+        bid_ivs=bid_ivs,
+        ask_ivs=ask_ivs,
+    )
 
 
 def get_gld_test_chain_data() -> OptionChain:
@@ -385,17 +385,17 @@ def get_gld_test_chain_data() -> OptionChain:
                                'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C',
                                'C', 'C', 'C', 'C', 'C'], dtype='<U1'))
 
-    data = OptionChain(ids=ids,
-                       ttms=ttms,
-                       ticker=ticker,
-                       forwards=forwards,
-                       strikes_ttms=strikes_ttms,
-                       optiontypes_ttms=optiontypes_ttms,
-                       discfactors=discfactors,
-                       bid_ivs=bid_ivs,
-                       ask_ivs=ask_ivs)
-
-    return data
+    return OptionChain(
+        ids=ids,
+        ttms=ttms,
+        ticker=ticker,
+        forwards=forwards,
+        strikes_ttms=strikes_ttms,
+        optiontypes_ttms=optiontypes_ttms,
+        discfactors=discfactors,
+        bid_ivs=bid_ivs,
+        ask_ivs=ask_ivs,
+    )
 
 
 def get_sqqq_test_chain_data() -> OptionChain:
@@ -554,17 +554,17 @@ def get_sqqq_test_chain_data() -> OptionChain:
                                'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C',
                                'C', 'C', 'C'], dtype='<U1'))
 
-    data = OptionChain(ids=ids,
-                       ttms=ttms,
-                       ticker=ticker,
-                       forwards=forwards,
-                       strikes_ttms=strikes_ttms,
-                       optiontypes_ttms=optiontypes_ttms,
-                       discfactors=discfactors,
-                       bid_ivs=bid_ivs,
-                       ask_ivs=ask_ivs)
-
-    return data
+    return OptionChain(
+        ids=ids,
+        ttms=ttms,
+        ticker=ticker,
+        forwards=forwards,
+        strikes_ttms=strikes_ttms,
+        optiontypes_ttms=optiontypes_ttms,
+        discfactors=discfactors,
+        bid_ivs=bid_ivs,
+        ask_ivs=ask_ivs,
+    )
 
 
 def get_spy_test_chain_data() -> OptionChain:
@@ -830,17 +830,17 @@ def get_spy_test_chain_data() -> OptionChain:
                                'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C',
                                'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C', 'C'], dtype='<U1'))
 
-    data = OptionChain(ids=ids,
-                       ttms=ttms,
-                       ticker=ticker,
-                       forwards=forwards,
-                       strikes_ttms=strikes_ttms,
-                       optiontypes_ttms=optiontypes_ttms,
-                       discfactors=discfactors,
-                       bid_ivs=bid_ivs,
-                       ask_ivs=ask_ivs)
-
-    return data
+    return OptionChain(
+        ids=ids,
+        ttms=ttms,
+        ticker=ticker,
+        forwards=forwards,
+        strikes_ttms=strikes_ttms,
+        optiontypes_ttms=optiontypes_ttms,
+        discfactors=discfactors,
+        bid_ivs=bid_ivs,
+        ask_ivs=ask_ivs,
+    )
 
 
 def get_qv_options_test_chain_data(num_strikes: int = 21) -> OptionChain:
@@ -857,17 +857,17 @@ def get_qv_options_test_chain_data(num_strikes: int = 21) -> OptionChain:
     optiontypes_ttm = np.full(strikes_ttm.shape, 'C')
     optiontypes_ttms = (optiontypes_ttm, optiontypes_ttm, optiontypes_ttm, optiontypes_ttm)
 
-    data = OptionChain(ids=ids,
-                       ttms=ttms,
-                       ticker='BTC',
-                       forwards=forwards,
-                       strikes_ttms=strikes_ttms,
-                       optiontypes_ttms=optiontypes_ttms,
-                       discfactors=discfactors,
-                       bid_ivs=None,
-                       ask_ivs=None)
-
-    return data
+    return OptionChain(
+        ids=ids,
+        ttms=ttms,
+        ticker='BTC',
+        forwards=forwards,
+        strikes_ttms=strikes_ttms,
+        optiontypes_ttms=optiontypes_ttms,
+        discfactors=discfactors,
+        bid_ivs=None,
+        ask_ivs=None,
+    )
 
 
 class UnitTests(Enum):

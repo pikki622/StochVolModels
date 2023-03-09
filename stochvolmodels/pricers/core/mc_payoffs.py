@@ -37,10 +37,10 @@ def compute_mc_vars_payoff(x0: np.ndarray, sigma0: np.ndarray, qvar0: np.ndarray
             payoff = np.where(np.greater(underlying_t, strike), underlying_t-strike, 0.0)
         elif type_ == 'IC':
             payoff = np.where(np.greater(underlying_t, strike), underlying_t - strike, 0.0) / spots_t
-        elif type_ == 'P':
-            payoff = np.where(np.less(underlying_t, strike), strike-underlying_t, 0.0)
         elif type_ == 'IP':
             payoff = np.where(np.less(underlying_t, strike), strike - underlying_t, 0.0) / spots_t
+        elif type_ == 'P':
+            payoff = np.where(np.less(underlying_t, strike), strike-underlying_t, 0.0)
         else:
             payoff = np.zeros_like(underlying_t)
         option_prices[idx] = discfactor*np.nanmean(payoff)
